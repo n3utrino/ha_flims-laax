@@ -1,0 +1,14 @@
+{
+  "domain": "flims_laax",
+  "name": "Flims Laax",
+  "codeowners": [
+    "@n3utrino"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/n3utrino/ha_flims-laax",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/n3utrino/ha_flims-laax/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
