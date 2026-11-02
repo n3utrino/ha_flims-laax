@@ -8,16 +8,15 @@ https://github.com/n3utrino/ha_flims-laax
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import FlimsLaaxApiClient
-from .const import CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS, DOMAIN, LOGGER
+from .const import CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, LOGGER
 from .coordinator import FlimsLaaxDataUpdateCoordinator
 from .data import FlimsLaaxData
-from .service_actions import async_setup_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -25,27 +24,14 @@ if TYPE_CHECKING:
     from .data import FlimsLaaxConfigEntry
 
 PLATFORMS: list[Platform] = [
-    Platform.BINARY_SENSOR,
-    Platform.BUTTON,
-    Platform.FAN,
-    Platform.NUMBER,
-    Platform.SELECT,
     Platform.SENSOR,
-    Platform.SWITCH,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """
-    Register the service actions.
-
-    Returns:
-        True once the actions are registered.
-
-    """
-    await async_setup_services(hass)
+    """Set up the integration domain."""
     return True
 
 
@@ -60,19 +46,15 @@ async def async_setup_entry(
         True once the coordinator has data and every platform is forwarded.
 
     """
-    client = FlimsLaaxApiClient(
-        username=entry.data[CONF_USERNAME],
-        password=entry.data[CONF_PASSWORD],
-        session=async_get_clientsession(hass),
-    )
+    client = FlimsLaaxApiClient(session=async_get_clientsession(hass))
 
-    interval_hours = float(entry.options.get(CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS))
+    interval_minutes = float(entry.options.get(CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES))
     coordinator = FlimsLaaxDataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
         name=DOMAIN,
         config_entry=entry,
-        update_interval=timedelta(hours=interval_hours),
+        update_interval=timedelta(minutes=interval_minutes),
         always_update=False,
     )
 

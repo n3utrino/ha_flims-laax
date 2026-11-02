@@ -1,4 +1,4 @@
-"""API client for flims_laax."""
+"""Client for the public Flims Laax live feed."""
 
 import asyncio
 import socket
@@ -6,132 +6,52 @@ from typing import Any
 
 import aiohttp
 
-API_URL = "https://jsonplaceholder.typicode.com/posts/1"
-COMMAND_URL = "https://jsonplaceholder.typicode.com/posts"
-REQUEST_TIMEOUT = 10
+from custom_components.flims_laax.const import LIVE_FEED_URL
 
-FAN_SPEEDS = ("low", "medium", "high", "auto")
-SPEED_PERCENTAGES = {"low": 33, "medium": 66, "high": 100, "auto": 66}
+REQUEST_TIMEOUT = 10
 
 
 class FlimsLaaxApiClientError(Exception):
     """Base exception to indicate a general API error."""
 
 
-class FlimsLaaxApiClientCommunicationError(
-    FlimsLaaxApiClientError,
-):
+class FlimsLaaxApiClientCommunicationError(FlimsLaaxApiClientError):
     """Exception to indicate a communication error with the API."""
 
 
-class FlimsLaaxApiClientAuthenticationError(
-    FlimsLaaxApiClientError,
-):
-    """Exception to indicate an authentication error with the API."""
-
-
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
-    """
-    Verify that the API response is valid.
-
-    Raises:
-        FlimsLaaxApiClientAuthenticationError: For 401 and 403 responses.
-        aiohttp.ClientResponseError: For every other unsuccessful status.
-
-    """
-    if response.status in (401, 403):
-        msg = "Invalid credentials"
-        raise FlimsLaaxApiClientAuthenticationError(msg)
+    """Verify that the API response is valid."""
     response.raise_for_status()
 
 
 class FlimsLaaxApiClient:
-    """
-    Stand-in for the client of a real device or service.
+    """Fetch and validate the public resort live feed."""
 
-    JSONPlaceholder is queried so that a real request happens on every poll, and its
-    response is turned into a device-shaped payload. The writable values are kept in
-    memory because the demo endpoint stores nothing; a real client sends them to the
-    device and reads them back on the next poll.
-    """
-
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        session: aiohttp.ClientSession,
-    ) -> None:
+    def __init__(self, session: aiohttp.ClientSession) -> None:
         """Initialize the API client."""
-        self._username = username
-        self._password = password
         self._session = session
-        self._settings: dict[str, Any] = {
-            "fan_on": True,
-            "fan_speed": "auto",
-            "child_lock": False,
-            "led_display": True,
-            "target_humidity": 50.0,
-        }
-        self._filter_reset_offset = 0
 
     async def async_get_data(self) -> dict[str, Any]:
-        """
-        Fetch the current device state.
+        """Fetch the current resort data."""
+        response = await self._api_wrapper(method="get", url=LIVE_FEED_URL)
+        if response.get("status") != "success" or not isinstance(response.get("data"), dict):
+            raise FlimsLaaxApiClientError("The live feed returned an invalid response")
 
-        Returns:
-            The device state, keyed the way entities read it.
-
-        """
-        response = await self._api_wrapper(method="get", url=API_URL)
-        return self._build_payload(response)
-
-    async def async_set_fan_speed(self, speed: str) -> None:
-        """Set the fan speed."""
-        await self._async_patch(fan_speed=speed, fan_on=True)
-
-    async def async_set_fan_state(self, *, is_on: bool) -> None:
-        """Turn the fan on or off."""
-        await self._async_patch(fan_on=is_on)
-
-    async def async_set_target_humidity(self, humidity: float) -> None:
-        """Set the target humidity."""
-        await self._async_patch(target_humidity=humidity)
-
-    async def async_set_toggle(self, key: str, *, enabled: bool) -> None:
-        """Set one of the device's boolean settings."""
-        await self._async_patch(**{key: enabled})
-
-    async def async_reset_filter(self) -> None:
-        """Reset the filter timer."""
-        await self._api_wrapper(method="post", url=COMMAND_URL, data={"command": "reset_filter"})
-        self._filter_reset_offset = 0
-
-    async def _async_patch(self, **changes: Any) -> None:
-        """Send changed settings to the device and remember them."""
-        await self._api_wrapper(method="patch", url=API_URL, data=changes)
-        self._settings.update(changes)
-
-    def _build_payload(self, response: dict[str, Any]) -> dict[str, Any]:
-        """Derive a device-shaped payload from the demo endpoint's response."""
-        seed = int(response.get("userId", 1)) * 47 + int(response.get("id", 1)) * 13
-        fan_speed = str(self._settings["fan_speed"])
-        filter_life = max(0, 100 - (seed % 100) - self._filter_reset_offset)
+        data = response["data"]
+        if not isinstance(data.get("overview"), dict) or not isinstance(data.get("lifts"), list):
+            raise FlimsLaaxApiClientError("The live feed is missing required resort data")
 
         return {
-            "model": "Blueprint Air Purifier",
-            "serial_number": f"BP-{seed:06d}",
-            "sw_version": "1.4.2",
-            "air_quality_index": seed % 501,
-            "pm25": round((seed * 0.37) % 300, 1),
-            "filter_life": filter_life,
-            "filter_replacement": filter_life < 10,
-            "runtime": (seed * 12) % 10000,
-            "fan_on": self._settings["fan_on"],
-            "fan_speed": fan_speed,
-            "fan_percentage": SPEED_PERCENTAGES[fan_speed] if self._settings["fan_on"] else 0,
-            "child_lock": self._settings["child_lock"],
-            "led_display": self._settings["led_display"],
-            "target_humidity": self._settings["target_humidity"],
+            "model": "Flims Laax live feed",
+            "serial_number": "flims-laax",
+            "sw_version": "live",
+            "overview": data["overview"],
+            "lifts": data["lifts"],
+            "weather": data.get("weather", {}),
+            "avalanche": data.get("avalanche", {}),
+            "visitors": data.get("visitors", {}),
+            "gate_counts": data.get("gateCounts", {}),
+            "seasons": data.get("seasons", {}),
         }
 
     async def _api_wrapper(
@@ -140,36 +60,16 @@ class FlimsLaaxApiClient:
         url: str,
         data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """
-        Perform a request and translate transport errors into client exceptions.
-
-        Returns:
-            The decoded JSON response.
-
-        Raises:
-            FlimsLaaxApiClientAuthenticationError: If the credentials are rejected.
-            FlimsLaaxApiClientCommunicationError: If the request does not complete.
-            FlimsLaaxApiClientError: For any other failure.
-
-        """
+        """Perform a request and translate transport errors into client errors."""
         try:
             async with asyncio.timeout(REQUEST_TIMEOUT):
-                response = await self._session.request(
-                    method=method,
-                    url=url,
-                    json=data,
-                )
-                _verify_response_or_raise(response)
-                return await response.json()
-
+                async with self._session.request(method=method, url=url, json=data) as response:
+                    _verify_response_or_raise(response)
+                    payload = await response.json()
+                    if not isinstance(payload, dict):
+                        raise FlimsLaaxApiClientError("The live feed did not return a JSON object")
+                    return payload
         except TimeoutError as exception:
-            msg = f"Timeout error fetching information - {exception}"
-            raise FlimsLaaxApiClientCommunicationError(msg) from exception
+            raise FlimsLaaxApiClientCommunicationError("Timed out fetching the live feed") from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
-            msg = f"Error fetching information - {exception}"
-            raise FlimsLaaxApiClientCommunicationError(msg) from exception
-        except FlimsLaaxApiClientError:
-            raise
-        except Exception as exception:
-            msg = f"Unexpected error talking to the API - {exception}"
-            raise FlimsLaaxApiClientError(msg) from exception
+            raise FlimsLaaxApiClientCommunicationError("Could not fetch the live feed") from exception

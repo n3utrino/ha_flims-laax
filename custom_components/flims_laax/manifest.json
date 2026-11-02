@@ -6,7 +6,7 @@
   ],
   "config_flow": true,
   "documentation": "https://github.com/n3utrino/ha_flims-laax",
-  "integration_type": "hub",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/n3utrino/ha_flims-laax/issues",
   "requirements": [],

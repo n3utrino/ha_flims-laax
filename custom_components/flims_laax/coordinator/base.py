@@ -2,12 +2,8 @@
 
 from typing import TYPE_CHECKING, Any
 
-from custom_components.flims_laax.api import (
-    FlimsLaaxApiClientAuthenticationError,
-    FlimsLaaxApiClientError,
-)
+from custom_components.flims_laax.api import FlimsLaaxApiClientError
 from custom_components.flims_laax.const import DOMAIN
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 if TYPE_CHECKING:
@@ -33,11 +29,6 @@ class FlimsLaaxDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         try:
             return await self.config_entry.runtime_data.client.async_get_data()
-        except FlimsLaaxApiClientAuthenticationError as exception:
-            raise ConfigEntryAuthFailed(
-                translation_domain=DOMAIN,
-                translation_key="authentication_failed",
-            ) from exception
         except FlimsLaaxApiClientError as exception:
             raise UpdateFailed(
                 translation_domain=DOMAIN,

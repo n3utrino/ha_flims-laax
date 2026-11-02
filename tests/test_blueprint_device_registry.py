@@ -12,14 +12,20 @@ from homeassistant.helpers import device_registry as dr
 
 
 async def test_entry_owns_its_own_device(init_integration: MockConfigEntry, hass: HomeAssistant) -> None:
-    """A loaded entry registers exactly one device, owned by that entry."""
+    """A loaded entry registers one device for each sensor group."""
     assert init_integration.state is ConfigEntryState.LOADED
 
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), init_integration.entry_id)
 
-    assert len(devices) == 1
-    assert devices[0].config_entry_id == init_integration.entry_id
-    assert devices[0].model == "Blueprint Air Purifier"
+    assert len(devices) == 5
+    assert {device.config_entry_id for device in devices} == {init_integration.entry_id}
+    assert {device.name for device in devices} == {
+        "demo Overview",
+        "demo Weather",
+        "demo Lifts",
+        "demo Visitors",
+        "demo Gates",
+    }
 
 
 async def test_two_entries_get_separate_devices(
@@ -40,11 +46,11 @@ async def test_two_entries_get_separate_devices(
 
     device_registry = dr.async_get(hass)
     first_device = device_registry.async_get_device_by_identifier(
-        (DOMAIN, init_integration.entry_id),
+        (DOMAIN, f"{init_integration.entry_id}_overview"),
         init_integration.entry_id,
     )
     second_device = device_registry.async_get_device_by_identifier(
-        (DOMAIN, second_entry.entry_id),
+        (DOMAIN, f"{second_entry.entry_id}_overview"),
         second_entry.entry_id,
     )
 

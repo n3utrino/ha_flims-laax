@@ -1,159 +1,42 @@
 # Examples
 
-This page provides ready-to-use examples for automations, dashboards, and blueprints
-with the Flims Laax custom integration.
+Entity IDs are based on the lift or location names. Confirm the exact IDs in **Settings → Devices & services**.
 
-Replace entity IDs like `sensor.device_name_*` with your actual entity IDs after
-setting up the integration.
-
-## Automations
-
-### Notify when a sensor exceeds a threshold
+## Notify when a lift opens
 
 ```yaml
-automation:
-  - alias: "Alert when sensor is high"
-    trigger:
-      - trigger: numeric_state
-        entity_id: sensor.device_name_air_quality
-        above: 100
-    action:
-      - action: notify.notify
-        data:
-          title: "Air quality alert"
-          message: "Sensor value exceeded 100!"
-```
-
-### Turn on a switch when connectivity is lost
-
-```yaml
-automation:
-  - alias: "React to connectivity loss"
-    trigger:
-      - trigger: state
-        entity_id: binary_sensor.device_name_connectivity
-        to: "off"
-        for:
-          minutes: 5
-    action:
-      - action: switch.turn_off
-        target:
-          entity_id: switch.device_name_switch
-```
-
-### Call a service action on schedule
-
-```yaml
-automation:
-  - alias: "Refresh the data every morning"
-    trigger:
-      - trigger: time
-        at: "03:00:00"
-    action:
-      - action: flims_laax.refresh_data
-        data:
-          config_entry_id: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
-```
-
-### Use a blueprint for threshold alerts
-
-Save this as a blueprint file and import it in Home Assistant:
-
-```yaml
-blueprint:
-  name: Flims Laax — Threshold Alert
-  description: Send a notification when a sensor exceeds a configurable threshold.
-  domain: automation
-  input:
-    sensor_entity:
-      name: Sensor
-      selector:
-        entity:
-          domain: sensor
-          integration: flims_laax
-    threshold:
-      name: Threshold value
-      selector:
-        number:
-          min: 0
-          max: 1000
-    notify_target:
-      name: Notification service
-      default: notify.notify
-      selector:
-        text:
-
-trigger:
-  - trigger: numeric_state
-    entity_id: !input sensor_entity
-    above: !input threshold
-
-action:
-  - action: !input notify_target
+alias: Notify when Caumasee lift opens
+triggers:
+  - trigger: state
+    entity_id: sensor.flims_laax_caumasee_status
+    to: open
+actions:
+  - action: notify.notify
     data:
-      message: >-
-        {{ state_attr(trigger.entity_id, 'friendly_name') }}
-        exceeded {{ threshold }} (current value: {{ trigger.to_state.state }}).
+      message: Caumasee lift is open.
 ```
 
-## Dashboard Cards
-
-### Sensor value card
-
-```yaml
-type: sensor
-entity: sensor.device_name_air_quality
-name: Air Quality
-graph: line
-```
-
-### Device summary — entities card
+## Show resort status
 
 ```yaml
 type: entities
-title: My Device
+title: Flims Laax
 entities:
-  - entity: sensor.device_name_air_quality
-    name: Air Quality
-  - entity: binary_sensor.device_name_connectivity
-    name: Connected
-  - entity: binary_sensor.device_name_filter
-    name: Filter Status
-  - entity: switch.device_name_switch
-    name: Power
-  - entity: select.device_name_fan_speed
-    name: Fan Speed
-  - entity: number.device_name_threshold
-    name: Threshold
+  - sensor.flims_laax_lifts_open
+  - sensor.flims_laax_lifts_total
+  - sensor.flims_laax_avalanche_danger_level
+  - sensor.flims_laax_caumasee_visitors
+  - sensor.flims_laax_caumasee_capacity
 ```
 
-### Status badge — multiple entities
+## Show mountain weather
 
 ```yaml
-type: glance
-title: Device Status
+type: entities
+title: Mountain weather
 entities:
-  - entity: binary_sensor.device_name_connectivity
-    name: Online
-  - entity: sensor.device_name_air_quality
-    name: Air Quality
-  - entity: binary_sensor.device_name_filter
-    name: Filter
-show_state: true
+  - sensor.flims_laax_vorab_gletscher_temperature
+  - sensor.flims_laax_vorab_gletscher_snow_depth
+  - sensor.flims_laax_crap_sogn_gion_temperature
+  - sensor.flims_laax_crap_sogn_gion_snow_depth
 ```
-
-### History graph
-
-```yaml
-type: history-graph
-title: Air Quality (last 24 h)
-entities:
-  - entity: sensor.device_name_air_quality
-hours_to_show: 24
-```
-
-## Related Documentation
-
-- [Configuration Reference](./CONFIGURATION.md) - All configuration options
-- [Getting Started](./GETTING_STARTED.md) - Installation and initial setup
-- [GitHub Issues](https://github.com/n3utrino/ha_flims-laax/issues) - Report problems

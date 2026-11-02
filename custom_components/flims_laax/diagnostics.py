@@ -6,7 +6,6 @@ https://developers.home-assistant.io/docs/core/integration_diagnostics
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers.redact import async_redact_data
 
 if TYPE_CHECKING:
@@ -15,9 +14,6 @@ if TYPE_CHECKING:
     from .data import FlimsLaaxConfigEntry
 
 TO_REDACT = {
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    "api_key",
     "serial_number",
     "token",
 }

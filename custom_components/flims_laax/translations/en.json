@@ -2,150 +2,88 @@
   "config": {
     "step": {
       "user": {
-        "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        },
-        "data_description": {
-          "username": "The account name you use to sign in to the device.",
-          "password": "The password for that account. It is stored encrypted and never written to the log."
-        }
-      },
-      "reconfigure": {
-        "description": "Update the credentials for this integration.",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        },
-        "data_description": {
-          "username": "The account name you use to sign in to the device.",
-          "password": "The password for that account."
-        }
-      },
-      "reauth_confirm": {
-        "title": "Reauthenticate integration",
-        "description": "The credentials for {username} are no longer valid. Provide updated credentials to restore access.",
-        "data": {
-          "username": "Username",
-          "password": "Password"
-        },
-        "data_description": {
-          "username": "The account name you use to sign in to the device.",
-          "password": "The current password for that account."
-        }
+        "title": "Set up Flims Laax",
+        "description": "Add the public Flims Laax live feed."
       }
     },
-    "error": {
-      "cannot_connect": "Unable to connect to the server.",
-      "invalid_auth": "The username or password is wrong.",
-      "unknown": "An unknown error occurred."
-    },
     "abort": {
-      "already_configured": "This entry is already configured.",
-      "reauth_successful": "Reauthentication was successful.",
-      "reconfigure_successful": "Reconfiguration was successful."
+      "already_configured": "Flims Laax is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Configure integration options",
-        "description": "Customize how this integration operates.",
+        "title": "Configure Flims Laax",
+        "description": "Choose how often the public live feed is refreshed.",
         "data": {
-          "update_interval_hours": "Update interval (hours)"
+          "update_interval_minutes": "Update interval (minutes)"
         },
         "data_description": {
-          "update_interval_hours": "How often to fetch the device state, between 0.25 and 24 hours."
+          "update_interval_minutes": "How often to fetch the resort live feed, from 1 to 60 minutes."
         }
       }
-    }
-  },
-  "exceptions": {
-    "authentication_failed": {
-      "message": "Authentication failed during the data update."
-    },
-    "update_failed": {
-      "message": "Failed to fetch data from the device."
-    },
-    "switch_set_failed": {
-      "message": "Failed to change the {name} setting on the device."
-    },
-    "number_set_failed": {
-      "message": "Failed to set the target humidity on the device."
-    },
-    "reset_filter_failed": {
-      "message": "Failed to reset the filter timer on the device."
-    },
-    "fan_speed_set_failed": {
-      "message": "Failed to change the fan speed on the device."
-    },
-    "fan_state_set_failed": {
-      "message": "Failed to turn the fan on or off."
-    },
-    "invalid_fan_speed": {
-      "message": "{speed} is not a fan speed this device supports."
-    },
-    "entry_not_found": {
-      "message": "No configuration entry of this integration matches {target}."
-    },
-    "entry_not_loaded": {
-      "message": "The configuration entry {target} is not loaded, so it cannot be refreshed."
     }
   },
   "entity": {
     "sensor": {
-      "filter_life": {
-        "name": "Filter life remaining"
+      "lifts_open": {
+        "name": "Open lifts"
       },
-      "runtime": {
-        "name": "Total runtime"
-      }
-    },
-    "binary_sensor": {
-      "filter_replacement": {
-        "name": "Filter replacement needed"
-      }
-    },
-    "switch": {
-      "child_lock": {
-        "name": "Child lock"
+      "lifts_total": {
+        "name": "Total lifts"
       },
-      "led_display": {
-        "name": "LED display"
-      }
-    },
-    "select": {
-      "fan_speed": {
-        "name": "Fan speed",
+      "lifts_preparing": {
+        "name": "Lifts preparing"
+      },
+      "lifts_closed": {
+        "name": "Closed lifts"
+      },
+      "lifts_non_operational": {
+        "name": "Non-operational lifts"
+      },
+      "lift_status": {
+        "name": "{lift} status",
         "state": {
-          "low": "Low",
-          "medium": "Medium",
-          "high": "High",
-          "auto": "Auto"
+          "open": "Open",
+          "soon": "Opening soon",
+          "closed": "Closed",
+          "not-in-operation": "Not in operation"
+        },
+        "state_attributes": {
+          "lift_id": {
+            "name": "Lift ID"
+          },
+          "information": {
+            "name": "Information"
+          },
+          "last_ride": {
+            "name": "Last ride"
+          }
         }
-      }
-    },
-    "number": {
-      "target_humidity": {
-        "name": "Target humidity"
-      }
-    },
-    "button": {
-      "reset_filter": {
-        "name": "Reset filter timer"
-      }
-    }
-  },
-  "services": {
-    "refresh_data": {
-      "name": "Refresh data",
-      "description": "Fetches the current device state immediately instead of waiting for the next poll.",
-      "fields": {
-        "config_entry_id": {
-          "name": "Integration entry",
-          "description": "The configuration entry to refresh."
-        }
+      },
+      "weather_temperature": {
+        "name": "{location} temperature"
+      },
+      "snow_depth": {
+        "name": "{location} snow depth"
+      },
+      "snow_24h": {
+        "name": "{location} snow in 24 hours"
+      },
+      "wind_speed": {
+        "name": "{location} wind speed"
+      },
+      "gate_count": {
+        "name": "{gate} gate count"
+      },
+      "avalanche_danger": {
+        "name": "Avalanche danger level"
+      },
+      "caumasee_visitors": {
+        "name": "Caumasee visitors"
+      },
+      "caumasee_capacity": {
+        "name": "Caumasee visitor capacity"
       }
     }
   }

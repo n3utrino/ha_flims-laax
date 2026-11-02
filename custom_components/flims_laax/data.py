@@ -22,6 +22,6 @@ type FlimsLaaxConfigEntry = ConfigEntry[FlimsLaaxData]
 class FlimsLaaxData:
     """Runtime data stored on the config entry after a successful setup."""
 
+    integration: Integration
     client: FlimsLaaxApiClient
     coordinator: FlimsLaaxDataUpdateCoordinator
-    integration: Integration

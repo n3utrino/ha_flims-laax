@@ -11,8 +11,32 @@ from custom_components.flims_laax.const import DOMAIN
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
-# The response the demo endpoint returns; the client turns it into the device payload.
-API_RESPONSE: dict[str, Any] = {"userId": 1, "id": 1, "title": "demo", "body": "demo"}
+# The response the public live feed returns; the client turns it into the device payload.
+API_RESPONSE: dict[str, Any] = {
+    "status": "success",
+    "data": {
+        "overview": {
+            "liftsOpen": 2,
+            "liftsTotal": 4,
+            "liftsPreparing": 1,
+            "liftsClosed": 1,
+            "liftsNonOperational": 0,
+        },
+        "lifts": [
+            {"id": "l1", "name": "Test Lift", "status": "open", "text": "", "lastRide": "17:00"},
+        ],
+        "weather": {
+            "laax": {
+                "temp": 3.5,
+                "snow": {"height": 42, "new24h": 8},
+                "wind": {"min": 4.2, "max": 12.5, "dir": "W"},
+            },
+        },
+        "avalanche": {"dangerLevel": 2},
+        "visitors": {"caumasee": 120, "caumaseeAllowed": 500},
+        "gateCounts": {"flims": 7},
+    },
+}
 
 
 @pytest.fixture(autouse=True)

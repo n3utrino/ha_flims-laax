@@ -5,7 +5,7 @@ from typing import Any
 
 import probatio
 
-from custom_components.flims_laax.const import CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS
+from custom_components.flims_laax.const import CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES
 from homeassistant.helpers import selector
 
 
@@ -24,14 +24,14 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Sc
     return probatio.Schema(
         {
             probatio.Optional(
-                CONF_UPDATE_INTERVAL_HOURS,
-                default=defaults.get(CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS),
+                CONF_UPDATE_INTERVAL_MINUTES,
+                default=defaults.get(CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.25,
-                    max=24,
-                    step=0.25,
-                    unit_of_measurement="h",
+                    min=1,
+                    max=60,
+                    step=1,
+                    unit_of_measurement="min",
                     mode=selector.NumberSelectorMode.BOX,
                 ),
             ),
